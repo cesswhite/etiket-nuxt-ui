@@ -65,7 +65,23 @@ export function calculateLogoPlacement(
   } else if (options.path) {
     // SVG path data — assumes 100x100 coordinate space
     svg += `<path d="${options.path}" transform="translate(${logoX},${logoY}) scale(${logoPixelSize / 100})" fill="currentColor"/>`;
+  } else if (options.imageUrl) {
+    // External image URL or data URI — embedded via SVG <image> element
+    const imgW = options.imageWidth ?? logoPixelSize;
+    const imgH = options.imageHeight ?? logoPixelSize;
+    // Center the image within the logo area
+    const imgX = logoX + (logoPixelSize - imgW) / 2;
+    const imgY = logoY + (logoPixelSize - imgH) / 2;
+    svg += `<image href="${escapeAttr(options.imageUrl)}" x="${imgX}" y="${imgY}" width="${imgW}" height="${imgH}"/>`;
   }
 
   return { svg, hiddenModules };
+}
+
+function escapeAttr(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }

@@ -36,11 +36,22 @@ export interface CornerOptions {
 }
 
 export interface LogoOptions {
+  /** Inline SVG markup (rendered inside a nested <svg>) */
   svg?: string;
+  /** SVG path data (assumes 100x100 coordinate space) */
   path?: string;
-  size?: number; // 0.1 to 0.5, default 0.3
+  /** Image data URI (e.g. "data:image/png;base64,...") or external URL */
+  imageUrl?: string;
+  /** Image width/height in pixels (required when using imageUrl) */
+  imageWidth?: number;
+  imageHeight?: number;
+  /** Logo size as fraction of QR size (0.1 to 0.5, default 0.3) */
+  size?: number;
+  /** Padding around logo in pixels */
   margin?: number;
+  /** Remove QR modules behind the logo (default true) */
   hideBackgroundDots?: boolean;
+  /** Background color behind the logo */
   backgroundColor?: string;
 }
 
