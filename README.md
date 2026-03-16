@@ -85,6 +85,17 @@ const qrSvg = renderQRCodeSVG(matrix, { size: 400 })
 - **EAN-8** (with auto check digit)
 - **QR Code** (byte mode, EC level M, versions 1-10)
 
+## Inspiration & Credits
+
+This project was built from scratch but inspired by these excellent libraries:
+
+- [uqr](https://github.com/unjs/uqr) — Zero-dependency QR code generator from the UnJS ecosystem. Inspired the approach of pure SVG string output without DOM dependency.
+- [bwip-js](https://github.com/metafloor/bwip-js) — Comprehensive barcode generator supporting 100+ types. Referenced for Code 128 Auto charset optimization logic.
+- [JsBarcode](https://github.com/lindell/JsBarcode) — Popular barcode library. Referenced for encoding table validation.
+- [pure-svg-code](https://github.com/gwuhaolin/pure-svg-code) — Lightweight barcode + QR in one package. Inspired the "single package for both" approach.
+
+Barcode encoding follows [ISO/IEC 15417](https://www.iso.org/standard/43896.html) (Code 128) and [ISO/IEC 15420](https://www.iso.org/standard/46143.html) (EAN/UPC) standards. QR Code encoding follows [ISO/IEC 18004](https://www.iso.org/standard/62021.html).
+
 ## License
 
 MIT
