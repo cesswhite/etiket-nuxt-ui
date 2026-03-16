@@ -739,6 +739,7 @@ export type { MSICheckDigitType } from "./encoders/msi";
 export { encodePharmacode } from "./encoders/pharmacode";
 export { encodeCode11 } from "./encoders/code11";
 export { encodeGS1128 } from "./encoders/gs1-128";
+export { encodeHIBCPrimary, encodeHIBCSecondary, encodeHIBCConcatenated } from "./encoders/hibc";
 export { encodeDataMatrix, encodeGS1DataMatrix } from "./encoders/datamatrix/index";
 export { encodePDF417 } from "./encoders/pdf417/index";
 export type { PDF417Options } from "./encoders/pdf417/index";
