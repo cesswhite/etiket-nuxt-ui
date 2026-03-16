@@ -309,8 +309,19 @@ export function encodeRMQR(text: string, options: RMQROptions = {}): boolean[][]
 
   let bitIdx = 0;
   let upward = true;
-  // rMQR: start from cols-3 (righthand timing at cols-1), move in 2-col pairs
-  for (let col = cols - 3; col >= 1; col -= 2) {
+  // rMQR zigzag: start from cols-2, skip sub-alignment columns
+  const subAlignCols = new Set<number>();
+  const wgi = [43, 59, 77, 99, 139].indexOf(cols);
+  if (wgi >= 0) {
+    for (const ac of ([[21], [19, 39], [25, 51], [23, 49, 75], [27, 55, 83, 111]] as number[][])[
+      wgi
+    ]!) {
+      subAlignCols.add(ac);
+    }
+  }
+  for (let col = cols - 2; col >= 1; col -= 2) {
+    // Skip sub-alignment column (like QR skips col 6)
+    if (subAlignCols.has(col)) col--;
     const rowOrder = upward
       ? Array.from({ length: rows }, (_, i) => rows - 1 - i)
       : Array.from({ length: rows }, (_, i) => i);
