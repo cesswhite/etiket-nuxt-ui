@@ -24,6 +24,7 @@ import { encodePharmacode } from "./encoders/pharmacode";
 import { encodeCode11 } from "./encoders/code11";
 import { encodeGS1128 } from "./encoders/gs1-128";
 import { encodeIdentcode, encodeLeitcode } from "./encoders/deutsche-post";
+import { encodePOSTNET, encodePLANET } from "./encoders/postnet";
 import { encodeDataMatrix, encodeGS1DataMatrix } from "./encoders/datamatrix/index";
 import { encodePDF417 } from "./encoders/pdf417/index";
 import { encodeAztec } from "./encoders/aztec/index";
@@ -55,7 +56,9 @@ export type BarcodeType =
   | "code11"
   | "gs1-128"
   | "identcode"
-  | "leitcode";
+  | "leitcode"
+  | "postnet"
+  | "planet";
 
 export interface BarcodeOptions extends BarcodeSVGOptions {
   type?: BarcodeType;
@@ -181,6 +184,27 @@ export function barcode(text: string, options: BarcodeOptions = {}): string {
     case "leitcode":
       bars = encodeLeitcode(text);
       break;
+    case "postnet": {
+      // POSTNET returns height array — convert to uniform bar/space widths
+      const heights = encodePOSTNET(text);
+      bars = [];
+      for (const _h of heights) {
+        bars.push(1); // bar
+        bars.push(1); // space
+      }
+      bars.pop(); // remove trailing space
+      break;
+    }
+    case "planet": {
+      const heights = encodePLANET(text);
+      bars = [];
+      for (const _h of heights) {
+        bars.push(1);
+        bars.push(1);
+      }
+      bars.pop();
+      break;
+    }
     default:
       throw new Error(`Unsupported barcode type: ${type}`);
   }
@@ -731,6 +755,10 @@ export function encode(text: string, options: EncodeOptions = {}): EncodeResult 
     case "leitcode":
       bars = encodeLeitcode(text);
       break;
+    case "postnet":
+      return { type: "1d", bars: encodePOSTNET(text) };
+    case "planet":
+      return { type: "1d", bars: encodePLANET(text) };
     default:
       throw new Error(`Unsupported encode type: ${type}`);
   }
@@ -755,6 +783,7 @@ export { encodePharmacode } from "./encoders/pharmacode";
 export { encodeCode11 } from "./encoders/code11";
 export { encodeGS1128 } from "./encoders/gs1-128";
 export { encodeIdentcode, encodeLeitcode } from "./encoders/deutsche-post";
+export { encodePOSTNET, encodePLANET } from "./encoders/postnet";
 export { encodeHIBCPrimary, encodeHIBCSecondary, encodeHIBCConcatenated } from "./encoders/hibc";
 export { encodeDataMatrix, encodeGS1DataMatrix } from "./encoders/datamatrix/index";
 export { encodePDF417 } from "./encoders/pdf417/index";
