@@ -73,6 +73,8 @@ export { encodeGS1128 } from "./encoders/gs1-128";
 export { encodeIdentcode, encodeLeitcode } from "./encoders/deutsche-post";
 export { encodePOSTNET, encodePLANET } from "./encoders/postnet";
 export { encodePlessey } from "./encoders/plessey";
+export { encodeGS1Composite } from "./encoders/gs1-composite";
+export type { CompositeType, GS1CompositeResult } from "./encoders/gs1-composite";
 export {
   encodeGS1DataBarOmni,
   encodeGS1DataBarLimited,
