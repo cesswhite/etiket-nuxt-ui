@@ -91,6 +91,8 @@ import { aztec } from "etiket/aztec";
 | **PDF417**         | `pdf417()`            | Text/Byte/Numeric, 9 EC levels, ISO-8859-15 |
 | **MicroPDF417**    | `encodeMicroPDF417()` | Compact PDF417 for small items              |
 | **Aztec**          | `aztec()`             | Compact + full-range, no quiet zone         |
+| **MaxiCode**       | `encodeMaxiCode()`    | 33×30 hexagonal, UPS shipping labels        |
+| **rMQR**           | `encodeRMQR()`        | Rectangular Micro QR (R7x43 to R17x139)     |
 | **Codablock F**    | `encodeCodablockF()`  | Stacked Code 128                            |
 | **Code 16K**       | `encodeCode16K()`     | Stacked barcode, 2-16 rows                  |
 
