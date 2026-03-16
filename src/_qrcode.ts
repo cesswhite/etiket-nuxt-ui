@@ -24,6 +24,10 @@ export function qrcode(text: string, options: QRCodeSVGOptions & QRCodeOptions =
     corners,
     logo,
     xmlDeclaration,
+    ariaLabel,
+    role,
+    title,
+    desc,
     ...qrOptions
   } = options;
   // Auto-upgrade EC level when logo is present (logo obscures modules)
@@ -42,6 +46,10 @@ export function qrcode(text: string, options: QRCodeSVGOptions & QRCodeOptions =
     corners,
     logo,
     xmlDeclaration,
+    ariaLabel,
+    role,
+    title,
+    desc,
   });
 }
 

@@ -26,6 +26,10 @@ export function renderBarcodeSVG(bars: number[], options: BarcodeSVGOptions = {}
     unit = "px",
     bearerBars = false,
     bearerBarWidth = 4,
+    ariaLabel,
+    role = "img",
+    title,
+    desc,
   } = options;
   const u = unit === "px" ? "" : unit;
 
@@ -49,9 +53,22 @@ export function renderBarcodeSVG(bars: number[], options: BarcodeSVGOptions = {}
   const svgWidth = rotation === 90 || rotation === 270 ? contentHeight : contentWidth;
   const svgHeight = rotation === 90 || rotation === 270 ? contentWidth : contentHeight;
 
-  const parts: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgWidth} ${svgHeight}" width="${svgWidth}${u}" height="${svgHeight}${u}">`,
-  ];
+  // Build SVG opening tag with accessibility attributes
+  let svgOpen = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgWidth} ${svgHeight}" width="${svgWidth}${u}" height="${svgHeight}${u}" role="${escapeAttr(role)}"`;
+  if (ariaLabel) {
+    svgOpen += ` aria-label="${escapeAttr(ariaLabel)}"`;
+  }
+  svgOpen += ">";
+
+  const parts: string[] = [svgOpen];
+
+  // Accessibility title and desc elements
+  if (title) {
+    parts.push(`<title>${escapeXml(title)}</title>`);
+  }
+  if (desc) {
+    parts.push(`<desc>${escapeXml(desc)}</desc>`);
+  }
 
   if (background !== "transparent") {
     parts.push(`<rect width="100%" height="100%" fill="${escapeAttr(background)}"/>`);

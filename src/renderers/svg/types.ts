@@ -55,9 +55,23 @@ export interface LogoOptions {
   backgroundColor?: string;
 }
 
-export interface QRCodeSVGOptions {
+/** Accessibility options for SVG output */
+export interface SVGAccessibilityOptions {
+  /** aria-label attribute for the SVG element */
+  ariaLabel?: string;
+  /** ARIA role attribute (default: "img") */
+  role?: string;
+  /** Title element added as first child of SVG */
+  title?: string;
+  /** Description element added after title */
+  desc?: string;
+}
+
+export interface QRCodeSVGOptions extends SVGAccessibilityOptions {
   size?: number;
   margin?: number; // in modules (quiet zone)
+  /** Measurement unit for size (default 'px'). Affects SVG width/height attributes. */
+  unit?: MeasurementUnit;
   color?: string | GradientOptions;
   background?: string | GradientOptions | "transparent";
   dotType?: DotType;
@@ -75,7 +89,7 @@ export interface QRCodeSVGOptions {
 /** Measurement unit for SVG dimensions */
 export type MeasurementUnit = "px" | "mm" | "in" | "pt" | "cm";
 
-export interface BarcodeSVGOptions {
+export interface BarcodeSVGOptions extends SVGAccessibilityOptions {
   width?: number;
   height?: number;
   barWidth?: number;

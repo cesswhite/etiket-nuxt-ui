@@ -6,14 +6,12 @@ import { encodeDataMatrix, encodeGS1DataMatrix } from "./encoders/datamatrix/ind
 import { encodePDF417 } from "./encoders/pdf417/index";
 import { encodeAztec } from "./encoders/aztec/index";
 import { renderMatrixSVG } from "./renderers/svg/matrix";
+import type { MatrixSVGOptions } from "./renderers/svg/matrix";
 
 /**
  * Generate a Data Matrix as SVG string
  */
-export function datamatrix(
-  text: string,
-  options?: { size?: number; color?: string; background?: string; margin?: number },
-): string {
+export function datamatrix(text: string, options?: MatrixSVGOptions): string {
   const matrix = encodeDataMatrix(text);
   return renderMatrixSVG(matrix, options);
 }
@@ -21,10 +19,7 @@ export function datamatrix(
 /**
  * Generate a GS1 DataMatrix as SVG string
  */
-export function gs1datamatrix(
-  text: string,
-  options?: { size?: number; color?: string; background?: string; margin?: number },
-): string {
+export function gs1datamatrix(text: string, options?: MatrixSVGOptions): string {
   const matrix = encodeGS1DataMatrix(text);
   return renderMatrixSVG(matrix, options);
 }
@@ -40,9 +35,7 @@ export function pdf417(
     compact?: boolean;
     width?: number;
     height?: number;
-    color?: string;
-    background?: string;
-  },
+  } & MatrixSVGOptions,
 ): string {
   const { ecLevel, columns, compact, ...svgOpts } = options ?? {};
   const result = encodePDF417(text, { ecLevel, columns, compact });
@@ -58,11 +51,7 @@ export function aztec(
     ecPercent?: number;
     layers?: number;
     compact?: boolean;
-    size?: number;
-    color?: string;
-    background?: string;
-    margin?: number;
-  },
+  } & MatrixSVGOptions,
 ): string {
   const { ecPercent, layers, compact, ...svgOpts } = options ?? {};
   const matrix = encodeAztec(text, { ecPercent, layers, compact });

@@ -8,6 +8,14 @@ import { isGradient, generateGradientDef, resetGradientCounter } from "./gradien
 import { calculateLogoPlacement } from "./logo";
 import { escapeAttr } from "./utils";
 
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 /**
  * Render a QR code matrix as an SVG string with optional styling
  */
@@ -23,6 +31,11 @@ export function renderQRCodeSVG(matrix: boolean[][], options: QRCodeSVGOptions =
     corners,
     logo,
     xmlDeclaration = false,
+    unit,
+    ariaLabel,
+    role = "img",
+    title,
+    desc,
   } = options;
 
   resetGradientCounter();
@@ -30,6 +43,7 @@ export function renderQRCodeSVG(matrix: boolean[][], options: QRCodeSVGOptions =
   const moduleCount = matrix.length;
   const totalModules = moduleCount + margin * 2;
   const moduleSize = size / totalModules;
+  const sizeAttr = unit ? `${size}${unit}` : `${size}`;
 
   const defs: string[] = [];
   const parts: string[] = [];
@@ -38,9 +52,22 @@ export function renderQRCodeSVG(matrix: boolean[][], options: QRCodeSVGOptions =
     parts.push('<?xml version="1.0" encoding="UTF-8"?>');
   }
 
-  parts.push(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`,
-  );
+  // Build SVG opening tag with accessibility attributes
+  let svgOpen = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${sizeAttr}" height="${sizeAttr}" role="${escapeAttr(role)}"`;
+  if (ariaLabel) {
+    svgOpen += ` aria-label="${escapeAttr(ariaLabel)}"`;
+  }
+  svgOpen += ">";
+
+  parts.push(svgOpen);
+
+  // Accessibility title and desc elements
+  if (title) {
+    parts.push(`<title>${escapeXml(title)}</title>`);
+  }
+  if (desc) {
+    parts.push(`<desc>${escapeXml(desc)}</desc>`);
+  }
 
   // Background
   if (background !== "transparent") {

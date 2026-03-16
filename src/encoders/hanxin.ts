@@ -10,20 +10,149 @@
  */
 
 import { InvalidInputError, CapacityError } from "../errors";
-import { pushBits } from "./qr/mode";
-import { generateECCodewords } from "./qr/reed-solomon";
+
+// ---------------------------------------------------------------------------
+// Han Xin mode indicators (4 bits each)
+// ---------------------------------------------------------------------------
+const MODE_NUMERIC = 0b0001;
+const MODE_TEXT = 0b0010;
+const MODE_BINARY = 0b0011;
+// const MODE_CHINESE = 0b0100; // GB 18030 — reserved for future use
+
+// ---------------------------------------------------------------------------
+// GF(256) arithmetic with Han Xin primitive polynomial 0x163
+// (x^8 + x^6 + x^5 + x + 1) — different from QR's 0x11D and DM's 0x12D
+// ---------------------------------------------------------------------------
+const HX_GF_EXP = new Uint8Array(512);
+const HX_GF_LOG = new Uint8Array(256);
+
+(function initHanXinGF() {
+  let x = 1;
+  for (let i = 0; i < 255; i++) {
+    HX_GF_EXP[i] = x;
+    HX_GF_LOG[x] = i;
+    x = x << 1;
+    if (x >= 256) x ^= 0x163;
+  }
+  // Extend exp table for easier modular arithmetic
+  for (let i = 255; i < 512; i++) {
+    HX_GF_EXP[i] = HX_GF_EXP[i - 255]!;
+  }
+})();
+
+/** Multiply two GF(256) elements using Han Xin polynomial */
+function gfMultiply(a: number, b: number): number {
+  if (a === 0 || b === 0) return 0;
+  return HX_GF_EXP[(HX_GF_LOG[a]! + HX_GF_LOG[b]!) % 255]!;
+}
+
+/** Generate Reed-Solomon EC codewords for Han Xin over GF(256)/0x163 */
+function hanxinGenerateEC(data: number[], ecCount: number): number[] {
+  // Build generator polynomial: g(x) = (x - a^0)(x - a^1)...(x - a^(ecCount-1))
+  const gen: number[] = Array.from({ length: ecCount + 1 }, () => 0);
+  gen[0] = 1;
+
+  for (let i = 0; i < ecCount; i++) {
+    for (let j = gen.length - 1; j >= 1; j--) {
+      gen[j] = gen[j - 1]! ^ gfMultiply(gen[j]!, HX_GF_EXP[i]!);
+    }
+    gen[0] = gfMultiply(gen[0]!, HX_GF_EXP[i]!);
+  }
+
+  // Polynomial long division: data polynomial / generator polynomial
+  const result = Array.from({ length: ecCount }, () => 0);
+  for (const byte of data) {
+    const lead = byte ^ result[0]!;
+    for (let j = 0; j < ecCount - 1; j++) {
+      result[j] = result[j + 1]! ^ gfMultiply(lead, gen[j + 1]!);
+    }
+    result[ecCount - 1] = gfMultiply(lead, gen[ecCount]!);
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Bit manipulation (local — no QR dependency)
+// ---------------------------------------------------------------------------
+
+/** Push `count` bits of `value` (MSB first) into a bit array */
+function pushBits(arr: number[], value: number, count: number): void {
+  for (let i = count - 1; i >= 0; i--) {
+    arr.push((value >> i) & 1);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Han Xin version sizing
+// ---------------------------------------------------------------------------
 
 // Han Xin version sizes: version v → (v*2 + 21) modules per side
 function hanxinSize(version: number): number {
   return version * 2 + 21;
 }
 
-// Approximate data capacity per version (byte mode, EC L1)
-function hanxinCapacity(version: number): number {
+/**
+ * Compute usable data module count for a given version.
+ *
+ * Total modules minus function patterns:
+ *   - 4 finder patterns (7×7 each = 196 modules)
+ *   - 4 timing strips along edges (between finders)
+ *   - Version/format info areas
+ *
+ * Returns the total number of data codewords (bytes) available
+ * before applying EC overhead.
+ */
+function hanxinTotalCodewords(version: number): number {
   const size = hanxinSize(version);
   const totalModules = size * size;
-  // ~60% usable after function patterns and EC
-  return Math.floor((totalModules * 0.6) / 8);
+
+  // 4 finder patterns — 7×7 each
+  const finderModules = 4 * 7 * 7;
+
+  // Timing patterns along all 4 edges (between finders)
+  // Each edge has (size - 14) modules in the timing strip
+  const timingModules = 4 * (size - 14);
+
+  // Format/version info: Han Xin uses structural regions
+  // along finder edges — approximate as 36 modules per version
+  const formatModules = Math.min(36 + version * 2, size * 4);
+
+  const usableModules = totalModules - finderModules - timingModules - formatModules;
+
+  return Math.floor(usableModules / 8);
+}
+
+/**
+ * Get data codeword capacity for a version at a given EC ratio.
+ */
+function hanxinDataCapacity(version: number, ecRatio: number): number {
+  const total = hanxinTotalCodewords(version);
+  const ecBytes = Math.ceil(total * ecRatio);
+  return total - ecBytes;
+}
+
+// ---------------------------------------------------------------------------
+// Encoding
+// ---------------------------------------------------------------------------
+
+/** Check if entire input is digits */
+function isNumeric(text: string): boolean {
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c < 0x30 || c > 0x39) return false;
+  }
+  return true;
+}
+
+/** Check if entire input is in the Han Xin text mode character set */
+function isText(text: string): boolean {
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    // Han Xin text mode covers ASCII 0x20-0x7E
+    if (c < 0x20 || c > 0x7e) return false;
+  }
+  return true;
 }
 
 export interface HanXinOptions {
@@ -43,18 +172,40 @@ export function encodeHanXin(text: string, options: HanXinOptions = {}): boolean
   const ecLevel = options.ecLevel ?? 1;
   const ecRatio = [0, 0.08, 0.15, 0.23, 0.3][ecLevel]!;
 
-  // Encode data as bytes
-  const data = new TextEncoder().encode(text);
-
-  // Build data bits
+  // Build data bits with Han Xin mode indicators
   const bits: number[] = [];
-  // Mode indicator: 0100 = byte mode
-  pushBits(bits, 0b0100, 4);
-  // Length
-  pushBits(bits, data.length, 13);
-  // Data bytes
-  for (const byte of data) {
-    pushBits(bits, byte, 8);
+
+  if (isNumeric(text)) {
+    // Numeric mode: groups of 3 digits → 10 bits
+    pushBits(bits, MODE_NUMERIC, 4);
+    pushBits(bits, text.length, 13);
+    for (let i = 0; i < text.length; i += 3) {
+      const group = text.substring(i, Math.min(i + 3, text.length));
+      const val = Number.parseInt(group, 10);
+      if (group.length === 3) {
+        pushBits(bits, val, 10);
+      } else if (group.length === 2) {
+        pushBits(bits, val, 7);
+      } else {
+        pushBits(bits, val, 4);
+      }
+    }
+  } else if (isText(text)) {
+    // Text mode: 6 bits per character
+    pushBits(bits, MODE_TEXT, 4);
+    pushBits(bits, text.length, 13);
+    for (let i = 0; i < text.length; i++) {
+      // Map ASCII 0x20-0x7E to 0-94
+      pushBits(bits, text.charCodeAt(i) - 0x20, 7);
+    }
+  } else {
+    // Binary mode: raw bytes
+    const data = new TextEncoder().encode(text);
+    pushBits(bits, MODE_BINARY, 4);
+    pushBits(bits, data.length, 13);
+    for (const byte of data) {
+      pushBits(bits, byte, 8);
+    }
   }
 
   // Select version
@@ -63,10 +214,9 @@ export function encodeHanXin(text: string, options: HanXinOptions = {}): boolean
 
   if (!options.version) {
     for (let v = 1; v <= 84; v++) {
-      const cap = hanxinCapacity(v);
-      const dataBytes = Math.floor(dataBitCount / 8) + 1;
-      const ecBytes = Math.ceil(dataBytes * ecRatio);
-      if (dataBytes + ecBytes <= cap) {
+      const dataCap = hanxinDataCapacity(v, ecRatio);
+      const neededBytes = Math.ceil(dataBitCount / 8);
+      if (neededBytes <= dataCap) {
         version = v;
         break;
       }
@@ -78,23 +228,27 @@ export function encodeHanXin(text: string, options: HanXinOptions = {}): boolean
 
   const size = hanxinSize(version);
 
-  // Pad bits
-  const totalCapBytes = hanxinCapacity(version);
-  const ecBytes = Math.ceil(totalCapBytes * ecRatio);
-  const dataBytes = totalCapBytes - ecBytes;
+  // Pad bits to fill data capacity
+  const totalCW = hanxinTotalCodewords(version);
+  const ecBytes = Math.ceil(totalCW * ecRatio);
+  const dataBytes = totalCW - ecBytes;
   const totalDataBits = dataBytes * 8;
 
-  // Terminator
+  // Terminator: up to 4 zero bits
   const termLen = Math.min(4, totalDataBits - bits.length);
   pushBits(bits, 0, termLen);
-  while (bits.length % 8 !== 0) bits.push(0);
-  let toggle = true;
-  while (bits.length < totalDataBits) {
-    pushBits(bits, toggle ? 236 : 17, 8);
-    toggle = !toggle;
-  }
 
-  // Convert to bytes
+  // Byte-align
+  while (bits.length % 8 !== 0) bits.push(0);
+
+  // Pad with 0x55 (Han Xin padding byte, alternating bits)
+  while (bits.length < totalDataBits) {
+    pushBits(bits, 0x55, 8);
+  }
+  // Trim to exact length
+  bits.length = totalDataBits;
+
+  // Convert bits to bytes
   const dataArr: number[] = [];
   for (let i = 0; i < bits.length; i += 8) {
     let byte = 0;
@@ -104,9 +258,57 @@ export function encodeHanXin(text: string, options: HanXinOptions = {}): boolean
     dataArr.push(byte);
   }
 
-  // EC
-  const ec = ecBytes > 0 ? generateECCodewords(dataArr, Math.min(ecBytes, 255)) : [];
-  const allBytes = [...dataArr, ...ec];
+  // Generate EC with Han Xin RS over GF(256)/0x163
+  // Split into blocks if ecBytes > 255 (RS block limit)
+  let allBytes: number[];
+  if (ecBytes === 0) {
+    allBytes = dataArr;
+  } else if (ecBytes <= 255) {
+    const ec = hanxinGenerateEC(dataArr, ecBytes);
+    allBytes = [...dataArr, ...ec];
+  } else {
+    // Split into multiple RS blocks
+    const numBlocks = Math.ceil(ecBytes / 255);
+    const ecPerBlock = Math.ceil(ecBytes / numBlocks);
+    const baseDataPerBlock = Math.floor(dataArr.length / numBlocks);
+    const extraDataBlocks = dataArr.length % numBlocks;
+
+    const interleavedData: number[] = [];
+    const interleavedEC: number[] = [];
+    const blocks: number[][] = [];
+    let pos = 0;
+
+    for (let b = 0; b < numBlocks; b++) {
+      const blockSize = baseDataPerBlock + (b < extraDataBlocks ? 1 : 0);
+      const block = dataArr.slice(pos, pos + blockSize);
+      blocks.push(block);
+      pos += blockSize;
+    }
+
+    // Generate EC per block
+    const ecBlocks: number[][] = [];
+    for (const block of blocks) {
+      ecBlocks.push(hanxinGenerateEC(block, Math.min(ecPerBlock, 255)));
+    }
+
+    // Interleave data
+    const maxDataLen = Math.max(...blocks.map((b) => b.length));
+    for (let i = 0; i < maxDataLen; i++) {
+      for (const block of blocks) {
+        if (i < block.length) interleavedData.push(block[i]!);
+      }
+    }
+
+    // Interleave EC
+    const maxECLen = Math.max(...ecBlocks.map((b) => b.length));
+    for (let i = 0; i < maxECLen; i++) {
+      for (const ec of ecBlocks) {
+        if (i < ec.length) interleavedEC.push(ec[i]!);
+      }
+    }
+
+    allBytes = [...interleavedData, ...interleavedEC];
+  }
 
   // Build matrix
   const matrix: (boolean | null)[][] = Array.from({ length: size }, () =>
@@ -119,7 +321,7 @@ export function encodeHanXin(text: string, options: HanXinOptions = {}): boolean
   placeFinder(matrix, size - 7, 0, size);
   placeFinder(matrix, size - 7, size - 7, size);
 
-  // Timing patterns
+  // Timing patterns along all 4 edges
   for (let i = 7; i < size - 7; i++) {
     if (matrix[0]![i] === null) matrix[0]![i] = i % 2 === 0;
     if (matrix[i]![0] === null) matrix[i]![0] = i % 2 === 0;
@@ -127,7 +329,7 @@ export function encodeHanXin(text: string, options: HanXinOptions = {}): boolean
     if (matrix[i]![size - 1] === null) matrix[i]![size - 1] = i % 2 === 0;
   }
 
-  // Place data
+  // Place data bits into available modules
   const allBits: number[] = [];
   for (const byte of allBytes) {
     pushBits(allBits, byte, 8);

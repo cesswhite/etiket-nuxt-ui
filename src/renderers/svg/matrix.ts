@@ -3,9 +3,18 @@
  * Used for Data Matrix, Aztec, and other 2D codes
  */
 
+import type { SVGAccessibilityOptions } from "./types";
 import { escapeAttr } from "./utils";
 
-export interface MatrixSVGOptions {
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+export interface MatrixSVGOptions extends SVGAccessibilityOptions {
   size?: number;
   color?: string;
   background?: string;
@@ -16,7 +25,16 @@ export interface MatrixSVGOptions {
  * Render a 2D boolean matrix as SVG
  */
 export function renderMatrixSVG(matrix: boolean[][], options: MatrixSVGOptions = {}): string {
-  const { size = 200, color = "#000", background = "#fff", margin = 2 } = options;
+  const {
+    size = 200,
+    color = "#000",
+    background = "#fff",
+    margin = 2,
+    ariaLabel,
+    role = "img",
+    title,
+    desc,
+  } = options;
 
   const rowCount = matrix.length;
   const colCount = matrix[0]?.length ?? 0;
@@ -28,9 +46,22 @@ export function renderMatrixSVG(matrix: boolean[][], options: MatrixSVGOptions =
   const svgWidth = (colCount + margin * 2) * moduleSize;
   const svgHeight = (rowCount + margin * 2) * moduleSize;
 
-  const parts: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgWidth} ${svgHeight}" width="${svgWidth}" height="${svgHeight}">`,
-  ];
+  // Build SVG opening tag with accessibility attributes
+  let svgOpen = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgWidth} ${svgHeight}" width="${svgWidth}" height="${svgHeight}" role="${escapeAttr(role)}"`;
+  if (ariaLabel) {
+    svgOpen += ` aria-label="${escapeAttr(ariaLabel)}"`;
+  }
+  svgOpen += ">";
+
+  const parts: string[] = [svgOpen];
+
+  // Accessibility title and desc elements
+  if (title) {
+    parts.push(`<title>${escapeXml(title)}</title>`);
+  }
+  if (desc) {
+    parts.push(`<desc>${escapeXml(desc)}</desc>`);
+  }
 
   if (background !== "transparent") {
     parts.push(`<rect width="100%" height="100%" fill="${escapeAttr(background)}"/>`);
