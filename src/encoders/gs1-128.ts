@@ -142,50 +142,134 @@ interface AIDefinition {
   dataPattern: RegExp;
 }
 
+// Helper: GS1 alphanumeric character class (CSET 82)
+const AN = (max: number) =>
+  new RegExp(`^[\\x21-\\x22\\x25-\\x2F\\x30-\\x39\\x41-\\x5A\\x5F\\x61-\\x7A]{1,${max}}$`);
+const N = (len: number) => new RegExp(`^\\d{${len}}$`);
+const NV = (max: number) => new RegExp(`^\\d{1,${max}}$`);
+
 const AI_DEFINITIONS: AIDefinition[] = [
-  { ai: "01", fixedLength: 14, maxLength: 14, dataPattern: /^\d{14}$/ },
-  { ai: "02", fixedLength: 14, maxLength: 14, dataPattern: /^\d{14}$/ },
-  {
-    ai: "10",
-    fixedLength: 0,
-    maxLength: 20,
-    dataPattern: /^[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{1,20}$/,
-  },
-  { ai: "11", fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  { ai: "13", fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  { ai: "15", fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  { ai: "17", fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  { ai: "20", fixedLength: 2, maxLength: 2, dataPattern: /^\d{2}$/ },
-  {
-    ai: "21",
-    fixedLength: 0,
-    maxLength: 20,
-    dataPattern: /^[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{1,20}$/,
-  },
-  { ai: "30", fixedLength: 0, maxLength: 8, dataPattern: /^\d{1,8}$/ },
-  { ai: "37", fixedLength: 0, maxLength: 8, dataPattern: /^\d{1,8}$/ },
-  {
-    ai: "400",
-    fixedLength: 0,
-    maxLength: 30,
-    dataPattern: /^[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{1,30}$/,
-  },
-  { ai: "410", fixedLength: 13, maxLength: 13, dataPattern: /^\d{13}$/ },
-  { ai: "414", fixedLength: 13, maxLength: 13, dataPattern: /^\d{13}$/ },
+  // Identification
+  { ai: "00", fixedLength: 18, maxLength: 18, dataPattern: N(18) }, // SSCC
+  { ai: "01", fixedLength: 14, maxLength: 14, dataPattern: N(14) }, // GTIN
+  { ai: "02", fixedLength: 14, maxLength: 14, dataPattern: N(14) }, // GTIN of contained items
+
+  // Batch/Serial
+  { ai: "10", fixedLength: 0, maxLength: 20, dataPattern: AN(20) }, // Batch/Lot
+  { ai: "21", fixedLength: 0, maxLength: 20, dataPattern: AN(20) }, // Serial number
+  { ai: "22", fixedLength: 0, maxLength: 20, dataPattern: AN(20) }, // Consumer product variant
+
+  // Dates (YYMMDD)
+  { ai: "11", fixedLength: 6, maxLength: 6, dataPattern: N(6) }, // Production date
+  { ai: "12", fixedLength: 6, maxLength: 6, dataPattern: N(6) }, // Due date (payment)
+  { ai: "13", fixedLength: 6, maxLength: 6, dataPattern: N(6) }, // Packaging date
+  { ai: "15", fixedLength: 6, maxLength: 6, dataPattern: N(6) }, // Best before
+  { ai: "16", fixedLength: 6, maxLength: 6, dataPattern: N(6) }, // Sell by date
+  { ai: "17", fixedLength: 6, maxLength: 6, dataPattern: N(6) }, // Expiry date
+
+  // Variant / Count
+  { ai: "20", fixedLength: 2, maxLength: 2, dataPattern: N(2) }, // Variant number
+  { ai: "30", fixedLength: 0, maxLength: 8, dataPattern: NV(8) }, // Variable count
+  { ai: "37", fixedLength: 0, maxLength: 8, dataPattern: NV(8) }, // Number of units
+
+  // Additional identification
+  { ai: "240", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // Additional item ID
+  { ai: "241", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // Customer part number
+  { ai: "242", fixedLength: 0, maxLength: 6, dataPattern: NV(6) }, // Made-to-order variation
+  { ai: "243", fixedLength: 0, maxLength: 20, dataPattern: AN(20) }, // Packaging component number
+  { ai: "250", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // Secondary serial number
+  { ai: "251", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // Reference to source entity
+  { ai: "253", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // GDTI
+  { ai: "254", fixedLength: 0, maxLength: 20, dataPattern: AN(20) }, // GLN extension component
+  { ai: "255", fixedLength: 0, maxLength: 25, dataPattern: NV(25) }, // GCN
+
+  // Order / Shipment
+  { ai: "400", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // Order number
+  { ai: "401", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // Consignment number
+  { ai: "402", fixedLength: 17, maxLength: 17, dataPattern: N(17) }, // Shipment ID (GSIN)
+  { ai: "403", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // Routing code
+
+  // Location (GLN)
+  { ai: "410", fixedLength: 13, maxLength: 13, dataPattern: N(13) }, // Ship to (deliver to)
+  { ai: "411", fixedLength: 13, maxLength: 13, dataPattern: N(13) }, // Bill to (invoice to)
+  { ai: "412", fixedLength: 13, maxLength: 13, dataPattern: N(13) }, // Purchased from
+  { ai: "413", fixedLength: 13, maxLength: 13, dataPattern: N(13) }, // Ship for (deliver for)
+  { ai: "414", fixedLength: 13, maxLength: 13, dataPattern: N(13) }, // Physical location ID
+  { ai: "415", fixedLength: 13, maxLength: 13, dataPattern: N(13) }, // Invoicing party GLN
+
+  // Postal codes
+  { ai: "420", fixedLength: 0, maxLength: 20, dataPattern: AN(20) }, // Ship to postal code (domestic)
   {
     ai: "421",
     fixedLength: 0,
     maxLength: 12,
     dataPattern: /^\d{3}[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{0,9}$/,
-  },
+  }, // Ship to postal code (with country)
+  { ai: "422", fixedLength: 3, maxLength: 3, dataPattern: N(3) }, // Country of origin
+  { ai: "423", fixedLength: 0, maxLength: 15, dataPattern: NV(15) }, // Country of initial processing
+  { ai: "424", fixedLength: 3, maxLength: 3, dataPattern: N(3) }, // Country of processing
+  { ai: "425", fixedLength: 0, maxLength: 15, dataPattern: NV(15) }, // Country of disassembly
+  { ai: "426", fixedLength: 3, maxLength: 3, dataPattern: N(3) }, // Country of full processing
+
+  // Special applications
+  { ai: "7001", fixedLength: 13, maxLength: 13, dataPattern: N(13) }, // NATO stock number
+  { ai: "7002", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // UN/ECE meat carcasses
+  { ai: "7003", fixedLength: 10, maxLength: 10, dataPattern: N(10) }, // Expiry date and time
+  { ai: "7004", fixedLength: 0, maxLength: 4, dataPattern: NV(4) }, // Active potency
+
+  // Coupon / payment
+  { ai: "8001", fixedLength: 14, maxLength: 14, dataPattern: N(14) }, // Roll products
+  { ai: "8002", fixedLength: 0, maxLength: 20, dataPattern: AN(20) }, // Cellular mobile telephone ID
+  { ai: "8003", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // GRAI
+  { ai: "8004", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // GIAI
+  { ai: "8005", fixedLength: 6, maxLength: 6, dataPattern: N(6) }, // Price per unit of measure
+  { ai: "8006", fixedLength: 18, maxLength: 18, dataPattern: N(18) }, // ITIP
+  { ai: "8007", fixedLength: 0, maxLength: 34, dataPattern: AN(34) }, // IBAN
+  { ai: "8008", fixedLength: 0, maxLength: 12, dataPattern: NV(12) }, // Date and time of production
+  { ai: "8010", fixedLength: 0, maxLength: 30, dataPattern: AN(30) }, // Component/Part ID (CPID)
+  { ai: "8011", fixedLength: 0, maxLength: 12, dataPattern: NV(12) }, // CPID serial number
+  { ai: "8017", fixedLength: 18, maxLength: 18, dataPattern: N(18) }, // GSRN — provider
+  { ai: "8018", fixedLength: 18, maxLength: 18, dataPattern: N(18) }, // GSRN — recipient
+  { ai: "8020", fixedLength: 0, maxLength: 25, dataPattern: AN(25) }, // Payment slip reference number
 ];
 
-// Build AI definitions for 310x and 320x (x = 0-9, decimal indicator)
-for (let x = 0; x <= 9; x++) {
-  AI_DEFINITIONS.push(
-    { ai: `310${x}`, fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-    { ai: `320${x}`, fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  );
+// Trade measures: 310x-369x (x = decimal indicator 0-9)
+// 310x=net weight kg, 311x=length m, 312x=width m, 313x=depth m,
+// 314x=area m², 315x=net volume L, 316x=net volume m³,
+// 320x=net weight lbs, 321x=length in, 322x=length ft, 323x=length yd,
+// 324x=width in, 325x=width ft, 326x=width yd,
+// 327x=depth in, 328x=depth ft, 329x=depth yd,
+// 330x=logistic weight kg, 331x=length m, 332x=width m, 333x=depth m,
+// 334x=area m², 335x=logistic volume L, 336x=logistic volume m³,
+// 340x=logistic weight lbs, 341x=length in, 342x=length ft, 343x=length yd,
+// 344x=width in, 345x=width ft, 346x=width yd,
+// 347x=depth in, 348x=depth ft, 349x=depth yd,
+// 350x=area in², 351x=area ft², 352x=area yd²,
+// 353x=gross weight kg, 356x=net weight troy oz, 357x=net weight oz,
+// 360x=net volume qt, 361x=net volume gal, 362x=logistic volume qt,
+// 363x=logistic volume gal, 364x=net volume in³, 365x=net volume ft³,
+// 366x=net volume yd³, 367x=logistic volume in³, 368x=logistic volume ft³, 369x=logistic volume yd³
+for (let prefix = 310; prefix <= 369; prefix++) {
+  for (let x = 0; x <= 9; x++) {
+    AI_DEFINITIONS.push({ ai: `${prefix}${x}`, fixedLength: 6, maxLength: 6, dataPattern: N(6) });
+  }
+}
+
+// Amount payable: 390x-394x
+for (let prefix = 390; prefix <= 394; prefix++) {
+  for (let x = 0; x <= 9; x++) {
+    AI_DEFINITIONS.push({
+      ai: `${prefix}${x}`,
+      fixedLength: 0,
+      maxLength: 15,
+      dataPattern: NV(15),
+    });
+  }
+}
+
+// NHRN (National Healthcare Reimbursement Number): 710-719
+for (let ai = 710; ai <= 719; ai++) {
+  AI_DEFINITIONS.push({ ai: `${ai}`, fixedLength: 0, maxLength: 20, dataPattern: AN(20) });
 }
 
 /**
