@@ -2,6 +2,8 @@
  * EAN-13 and EAN-8 barcode encoder
  */
 
+import { InvalidInputError } from "../errors";
+
 // Encoding patterns for digits
 // L = left odd parity, G = left even parity, R = right
 const L_PATTERNS: number[][] = [
@@ -18,21 +20,21 @@ const L_PATTERNS: number[][] = [
 ];
 
 const R_PATTERNS: number[][] = [
-  [1, 1, 2, 3], // 0
-  [1, 2, 2, 2], // 1
-  [2, 2, 1, 2], // 2
-  [1, 1, 4, 1], // 3
-  [2, 3, 1, 1], // 4
-  [1, 3, 2, 1], // 5
-  [4, 1, 1, 1], // 6
-  [2, 1, 3, 1], // 7
-  [3, 1, 2, 1], // 8
-  [2, 1, 1, 3], // 9
+  [3, 2, 1, 1], // 0
+  [2, 2, 2, 1], // 1
+  [2, 1, 2, 2], // 2
+  [1, 4, 1, 1], // 3
+  [1, 1, 3, 2], // 4
+  [1, 2, 3, 1], // 5
+  [1, 1, 1, 4], // 6
+  [1, 3, 1, 2], // 7
+  [1, 2, 1, 3], // 8
+  [3, 1, 1, 2], // 9
 ];
 
 // G patterns (used for EAN-13 left side based on first digit)
 const G_PATTERNS: number[][] = [
-  [1, 1, 2, 3], // 0 (mirror of R)
+  [1, 1, 2, 3], // 0 (reverse of L)
   [1, 2, 2, 2], // 1
   [2, 2, 1, 2], // 2
   [1, 1, 4, 1], // 3
@@ -83,8 +85,15 @@ export function encodeEAN13(text: string): { bars: number[]; guards: number[] } 
 
   if (digits.length === 12) {
     digits.push(calculateCheckDigit(digits));
-  } else if (digits.length !== 13) {
-    throw new Error("EAN-13 requires 12 or 13 digits");
+  } else if (digits.length === 13) {
+    const expected = calculateCheckDigit(digits.slice(0, 12));
+    if (digits[12] !== expected) {
+      throw new InvalidInputError(
+        `EAN-13 check digit mismatch: expected ${expected}, got ${digits[12]}`,
+      );
+    }
+  } else {
+    throw new InvalidInputError("EAN-13 requires 12 or 13 digits");
   }
 
   const firstDigit = digits[0]!;
@@ -147,8 +156,15 @@ export function encodeEAN8(text: string): { bars: number[]; guards: number[] } {
 
   if (digits.length === 7) {
     digits.push(calculateCheckDigit(digits));
-  } else if (digits.length !== 8) {
-    throw new Error("EAN-8 requires 7 or 8 digits");
+  } else if (digits.length === 8) {
+    const expected = calculateCheckDigit(digits.slice(0, 7));
+    if (digits[7] !== expected) {
+      throw new InvalidInputError(
+        `EAN-8 check digit mismatch: expected ${expected}, got ${digits[7]}`,
+      );
+    }
+  } else {
+    throw new InvalidInputError("EAN-8 requires 7 or 8 digits");
   }
 
   const bars: number[] = [];

@@ -36,7 +36,7 @@ describe("Leitcode", () => {
   });
 
   it("encodes 14 digits (with check)", () => {
-    const bars = encodeLeitcode("21300000000140");
+    const bars = encodeLeitcode("21300000000146");
     expect(bars.length).toBeGreaterThan(0);
   });
 

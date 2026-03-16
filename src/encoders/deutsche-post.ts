@@ -35,6 +35,13 @@ export function encodeIdentcode(text: string): number[] {
   if (digits.length === 11) {
     data = digits + dpCheckDigit(digits);
   } else if (digits.length === 12) {
+    const expected = dpCheckDigit(digits.slice(0, 11));
+    const provided = Number(digits[11]);
+    if (provided !== expected) {
+      throw new InvalidInputError(
+        `Identcode check digit mismatch: expected ${expected}, got ${provided}`,
+      );
+    }
     data = digits;
   } else {
     throw new InvalidInputError("Identcode requires 11 or 12 digits");
@@ -60,6 +67,13 @@ export function encodeLeitcode(text: string): number[] {
   if (digits.length === 13) {
     data = digits + dpCheckDigit(digits);
   } else if (digits.length === 14) {
+    const expected = dpCheckDigit(digits.slice(0, 13));
+    const provided = Number(digits[13]);
+    if (provided !== expected) {
+      throw new InvalidInputError(
+        `Leitcode check digit mismatch: expected ${expected}, got ${provided}`,
+      );
+    }
     data = digits;
   } else {
     throw new InvalidInputError("Leitcode requires 13 or 14 digits");

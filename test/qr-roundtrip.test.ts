@@ -86,7 +86,7 @@ describe("QR round-trip (encode → decode)", () => {
   it("works with all 8 mask patterns", () => {
     const text = "MASK TEST";
     for (let mask = 0; mask < 8; mask++) {
-      expect(roundTrip(text, { mask })).toBe(text);
+      expect(roundTrip(text, { mask: mask as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 })).toBe(text);
     }
   });
 

@@ -118,6 +118,14 @@ export function encodeITF14(text: string): number[] {
     const check = calculateCheckDigit(nums);
     digits = text + String(check);
   } else if (text.length === 14) {
+    const nums = text.slice(0, 13).split("").map(Number);
+    const expected = calculateCheckDigit(nums);
+    const provided = Number(text[13]);
+    if (provided !== expected) {
+      throw new InvalidInputError(
+        `ITF-14 check digit mismatch: expected ${expected}, got ${provided}`,
+      );
+    }
     digits = text;
   } else {
     throw new InvalidInputError("ITF-14 requires 13 or 14 digits");
