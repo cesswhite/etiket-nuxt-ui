@@ -112,6 +112,7 @@ export {
   encodeISBT128Component,
   encodeISBT128Expiry,
   encodeISBT128BloodGroup,
+  iso7064Mod37_2,
 } from "./encoders/isbt128";
 
 // --- Renderers ---

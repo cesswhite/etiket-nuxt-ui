@@ -4,18 +4,19 @@ import {
   encodeISBT128Component,
   encodeISBT128Expiry,
   encodeISBT128BloodGroup,
+  iso7064Mod37_2,
 } from "../src/encoders/isbt128";
 import { barcode } from "../src/index";
 
 describe("ISBT 128 DIN", () => {
-  it("formats donation identification number", () => {
+  it("formats donation identification number with check character", () => {
     const result = encodeISBT128DIN("US", "12345", "26", "000001");
-    expect(result).toBe("=US1234526000001");
+    expect(result).toBe("=US12345260000019");
   });
 
-  it("pads facility and donation numbers", () => {
+  it("pads facility and donation numbers with check character", () => {
     const result = encodeISBT128DIN("GB", "1", "26", "1");
-    expect(result).toBe("=GB0000126000001");
+    expect(result).toBe("=GB0000126000001O");
   });
 
   it("throws on invalid country code", () => {
@@ -60,5 +61,29 @@ describe("ISBT 128 Blood Group", () => {
 
   it("throws on empty", () => {
     expect(() => encodeISBT128BloodGroup("")).toThrow();
+  });
+});
+
+describe("ISO 7064 Mod 37-2 check character", () => {
+  it("computes correct check for numeric input", () => {
+    expect(iso7064Mod37_2("0000000000")).toBe("0");
+  });
+
+  it("computes correct check for alphanumeric DIN data", () => {
+    expect(iso7064Mod37_2("US1234526000001")).toBe("9");
+  });
+
+  it("computes correct check for another DIN", () => {
+    expect(iso7064Mod37_2("GB0000126000001")).toBe("O");
+  });
+
+  it("throws on invalid character", () => {
+    expect(() => iso7064Mod37_2("us12345")).toThrow();
+  });
+
+  it("handles asterisk in character set", () => {
+    // * has value 36 in the Mod 37-2 character set
+    const result = iso7064Mod37_2("*");
+    expect(result).toMatch(/^[0-9A-Z*]$/);
   });
 });

@@ -9,6 +9,38 @@
 import { InvalidInputError } from "../errors";
 
 /**
+ * ISO/IEC 7064 Mod 37-2 check character set: 0-9 (values 0-9), A-Z (values 10-35), * (value 36)
+ */
+const MOD37_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ*";
+
+/**
+ * Compute ISO/IEC 7064 Modulo 37-2 check character
+ *
+ * Algorithm (pure system, radix 2, modulus 37):
+ * 1. Start with sum = 0
+ * 2. For each character: sum = ((sum + charValue) * 2) mod 37
+ * 3. Check value = (37 - sum) mod 37
+ * 4. Map back to character set
+ *
+ * @param data - Input string containing only characters from the Mod 37-2 character set
+ * @returns Single check character
+ */
+export function iso7064Mod37_2(data: string): string {
+  let sum = 0;
+  for (let i = 0; i < data.length; i++) {
+    const idx = MOD37_CHARSET.indexOf(data[i]);
+    if (idx === -1) {
+      throw new InvalidInputError(
+        `Invalid character '${data[i]}' for ISO 7064 Mod 37-2 check character computation`,
+      );
+    }
+    sum = ((sum + idx) * 2) % 37;
+  }
+  const check = (37 - sum) % 37;
+  return MOD37_CHARSET[check];
+}
+
+/**
  * Encode ISBT 128 Donation Identification Number (DIN)
  * Format: =FLLLLLYYYNNNNNN where:
  *   = : ISBT flag character
@@ -48,7 +80,9 @@ export function encodeISBT128DIN(
 
   const facility = facilityNumber.padStart(5, "0");
   const donation = donationNumber.padStart(6, "0");
-  return `=${countryCode}${facility}${year}${donation}`;
+  const din = `${countryCode}${facility}${year}${donation}`;
+  const check = iso7064Mod37_2(din);
+  return `=${din}${check}`;
 }
 
 /**
