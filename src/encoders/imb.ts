@@ -68,17 +68,17 @@ export function encodeIMb(trackingCode: string, routingCode: string = ""): FourS
   // Binary = tracking_code * routing_multiplier + routing_code
   const trackNum = BigInt(track);
   let routeNum = 0n;
-  let routeMultiplier = 1n;
+  let _routeMultiplier = 1n;
 
   if (route.length === 11) {
     routeNum = BigInt(route) + 1n;
-    routeMultiplier = 100000000000n + 100000n + 1n; // 10^11 + 10^5 + 1
+    _routeMultiplier = 100000000000n + 100000n + 1n; // 10^11 + 10^5 + 1
   } else if (route.length === 9) {
     routeNum = BigInt(route) + 1n;
-    routeMultiplier = 1000000000n + 100000n + 1n;
+    _routeMultiplier = 1000000000n + 100000n + 1n;
   } else if (route.length === 5) {
     routeNum = BigInt(route) + 1n;
-    routeMultiplier = 100000n + 1n;
+    _routeMultiplier = 100000n + 1n;
   }
 
   const binaryValue = trackNum + routeNum;
@@ -90,7 +90,7 @@ export function encodeIMb(trackingCode: string, routingCode: string = ""): FourS
   const codewords = binaryToCodewords(binaryValue, fcs);
 
   // Map codewords to 65 bars
-  const bars: FourState[] = new Array(65).fill("T");
+  const bars: FourState[] = Array.from({ length: 65 }, () => "T" as FourState);
 
   for (let i = 0; i < 10; i++) {
     const cw = codewords[i]!;

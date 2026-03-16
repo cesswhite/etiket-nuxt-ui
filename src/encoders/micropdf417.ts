@@ -97,7 +97,7 @@ export function encodeMicroPDF417(
   const allCW = [...dataCW, ...ec.slice(0, ecCW)];
 
   // Build matrix
-  const moduleWidth = cols * 17 + 17 + 17; // data + left RAP + right RAP
+  // const moduleWidth = cols * 17 + 17 + 17; // data + left RAP + right RAP
   const matrix: boolean[][] = [];
 
   for (let row = 0; row < rows; row++) {

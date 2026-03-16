@@ -10,7 +10,7 @@ import { InvalidInputError, CapacityError } from "../errors";
 
 // Code 128 patterns (same as code128.ts but self-contained for independence)
 const START_C = 105;
-const STOP = 106;
+const _STOP = 106;
 const CODE_B = 100;
 
 const PATTERNS: number[][] = [
