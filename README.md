@@ -1,101 +1,246 @@
-# etiket
+<p align="center">
+  <br>
+  <b style="font-size: 2em;">etiket</b>
+  <br><br>
+  Zero-dependency barcode & QR code SVG generator.
+  <br>
+  20+ formats, styled QR codes, tree-shakeable. Pure TypeScript, works everywhere.
+  <br><br>
+</p>
 
-Zero-dependency barcode & QR code SVG generator. Pure ESM, lightweight (~4KB gzip), works everywhere.
+## Quick Start
 
-## Install
-
-```bash
+```sh
 npm install etiket
-# or
-pnpm add etiket
 ```
+
+```ts
+import { barcode, qrcode } from "etiket";
+
+const svg = barcode("Hello World");
+const qr = qrcode("https://example.com", { dotType: "dots", ecLevel: "H" });
+```
+
+## Tree Shaking
+
+Import only what you need:
+
+```ts
+import { barcode } from "etiket/barcode"; // 1D barcodes only
+import { qrcode } from "etiket/qr"; // QR codes only
+import { datamatrix } from "etiket/datamatrix";
+import { pdf417 } from "etiket/pdf417";
+import { aztec } from "etiket/aztec";
+```
+
+## Supported Formats
+
+### 1D Barcodes
+
+| Format            | Type        | Description                    |
+| :---------------- | :---------- | :----------------------------- |
+| **Code 128**      | `code128`   | Auto charset (A/B/C)          |
+| **Code 39**       | `code39`    | 43-char set, optional check    |
+| **Code 39 Ext**   | `code39ext` | Full ASCII                     |
+| **Code 93**       | `code93`    | Higher density, 2 check digits |
+| **Code 93 Ext**   | `code93ext` | Full ASCII                     |
+| **EAN-13**        | `ean13`     | Auto check digit               |
+| **EAN-8**         | `ean8`      | Auto check digit               |
+| **EAN-5**         | `ean5`      | Addon (book price)             |
+| **EAN-2**         | `ean2`      | Addon (issue number)           |
+| **UPC-A**         | `upca`      | 12-digit, auto check digit     |
+| **UPC-E**         | `upce`      | Compressed 8-digit             |
+| **ITF**           | `itf`       | Interleaved 2 of 5             |
+| **ITF-14**        | `itf14`     | 14-digit with bearer bars      |
+| **Codabar**       | `codabar`   | Libraries, blood banks         |
+| **MSI Plessey**   | `msi`       | Mod10/11/1010/1110             |
+| **Pharmacode**    | `pharmacode`| Pharmaceutical                 |
+| **Code 11**       | `code11`    | Telecommunications             |
+| **GS1-128**       | `gs1-128`   | AI parsing, FNC1               |
+
+### 2D Codes
+
+| Format          | Function       | Description                                    |
+| :-------------- | :------------- | :--------------------------------------------- |
+| **QR Code**     | `qrcode()`     | Versions 1-40, all EC levels, all modes        |
+| **Data Matrix** | `datamatrix()` | ECC 200, 24 square + 6 rectangular sizes       |
+| **PDF417**      | `pdf417()`     | Text/Byte/Numeric compaction, 9 EC levels      |
+| **Aztec**       | `aztec()`      | Compact + full-range, no quiet zone            |
 
 ## Usage
 
+### Barcodes
+
 ```ts
-import { barcode, qrcode } from 'etiket'
+import { barcode } from "etiket";
 
-// Code 128 barcode
-const svg = barcode('Hello World')
-
-// EAN-13 barcode
-const ean = barcode('4006381333931', { type: 'ean13', showText: true })
-
-// QR code
-const qr = qrcode('https://example.com')
+barcode("Hello World"); // Code 128 (default)
+barcode("4006381333931", { type: "ean13", showText: true });
+barcode("00012345678905", { type: "itf14", bearerBars: true });
+barcode("(01)12345678901234(17)260101", { type: "gs1-128" });
+barcode("HELLO", { type: "code39", code39CheckDigit: true });
 ```
 
-## API
+| Option       | Type                                   | Default      | Description                   |
+| :----------- | :------------------------------------- | :----------- | :---------------------------- |
+| `type`       | `BarcodeType`                          | `'code128'`  | Barcode format                |
+| `height`     | `number`                               | `80`         | Bar height in pixels          |
+| `barWidth`   | `number`                               | `2`          | Width multiplier per module   |
+| `color`      | `string`                               | `'#000'`     | Bar color                     |
+| `background` | `string`                               | `'#fff'`     | Background color              |
+| `showText`   | `boolean`                              | `false`      | Show text below barcode       |
+| `fontSize`   | `number`                               | `14`         | Text font size                |
+| `fontFamily` | `string`                               | `'monospace'`| Text font family              |
+| `margin`     | `number`                               | `10`         | Margin around barcode         |
+| `textAlign`  | `'center' \| 'left' \| 'right'`       | `'center'`   | Text alignment                |
+| `bearerBars` | `boolean`                              | `false`      | Bearer bars (ITF-14)          |
 
-### `barcode(text, options?)`
-
-Generate a 1D barcode as SVG string.
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `type` | `'code128' \| 'ean13' \| 'ean8'` | `'code128'` | Barcode type |
-| `height` | `number` | `80` | Bar height in pixels |
-| `barWidth` | `number` | `2` | Width multiplier per module |
-| `color` | `string` | `'#000'` | Bar color |
-| `background` | `string` | `'#fff'` | Background color |
-| `showText` | `boolean` | `false` | Show text below barcode |
-| `fontSize` | `number` | `14` | Text font size |
-| `margin` | `number` | `10` | Margin around barcode |
-
-### `qrcode(text, options?)`
-
-Generate a QR code as SVG string.
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `size` | `number` | `200` | SVG size in pixels |
-| `color` | `string` | `'#000'` | Module color |
-| `background` | `string` | `'#fff'` | Background color |
-| `margin` | `number` | `4` | Quiet zone modules |
-
-### Advanced: Raw encoders
+### QR Codes
 
 ```ts
-import { encodeCode128, encodeEAN13, encodeQR, renderBarcodeSVG, renderQRCodeSVG } from 'etiket'
+import { qrcode } from "etiket";
 
-// Get raw bar widths
-const bars = encodeCode128('data')
+qrcode("https://example.com");
+qrcode("Hello", { size: 300, ecLevel: "H", dotType: "rounded" });
 
-// Get raw QR matrix
-const matrix = encodeQR('data')
+// With gradient
+qrcode("Test", {
+  color: {
+    type: "linear",
+    rotation: 45,
+    stops: [
+      { offset: 0, color: "#ff0000" },
+      { offset: 1, color: "#0000ff" },
+    ],
+  },
+});
 
-// Custom SVG rendering
-const svg = renderBarcodeSVG(bars, { height: 100, barWidth: 3 })
-const qrSvg = renderQRCodeSVG(matrix, { size: 400 })
+// With corner styling
+qrcode("Test", {
+  dotType: "dots",
+  corners: {
+    topLeft: { outerShape: "rounded", innerShape: "dots", outerColor: "#ff0000" },
+    topRight: { outerShape: "extra-rounded" },
+    bottomLeft: { outerShape: "dots" },
+  },
+});
+```
+
+| Option           | Type                          | Default     | Description              |
+| :--------------- | :---------------------------- | :---------- | :----------------------- |
+| `size`           | `number`                      | `200`       | SVG size in pixels       |
+| `ecLevel`        | `'L' \| 'M' \| 'Q' \| 'H'`  | `'M'`       | Error correction level   |
+| `version`        | `number`                      | auto        | QR version (1-40)        |
+| `mode`           | `'numeric' \| 'alphanumeric' \| 'byte' \| 'auto'` | `'auto'` | Encoding mode |
+| `mask`           | `0-7`                         | auto        | Mask pattern             |
+| `color`          | `string \| GradientOptions`   | `'#000'`    | Module color             |
+| `background`     | `string \| GradientOptions`   | `'#fff'`    | Background color         |
+| `margin`         | `number`                      | `4`         | Quiet zone in modules    |
+| `dotType`        | `DotType`                     | `'square'`  | Module shape             |
+| `dotSize`        | `number`                      | `1`         | Module size (0.1-1)      |
+| `corners`        | `object`                      | —           | Finder pattern styling   |
+| `logo`           | `LogoOptions`                 | —           | Center logo embedding    |
+| `xmlDeclaration` | `boolean`                     | `false`     | Add XML declaration      |
+
+**Dot types:** `square`, `rounded`, `dots`, `diamond`, `classy`, `classy-rounded`, `extra-rounded`, `vertical-line`, `horizontal-line`, `small-square`, `tiny-square`
+
+### 2D Codes
+
+```ts
+import { datamatrix, pdf417, aztec } from "etiket";
+
+datamatrix("Hello World");
+pdf417("Hello World", { ecLevel: 4, columns: 5 });
+aztec("Hello World", { ecPercent: 33 });
+```
+
+## Output Formats
+
+```ts
+import {
+  barcode,
+  qrcode,
+  barcodeDataURI,
+  qrcodeDataURI,
+  barcodeBase64,
+  qrcodeBase64,
+  qrcodeTerminal,
+} from "etiket";
+
+const svg = qrcode("Hello"); // SVG string
+const uri = qrcodeDataURI("Hello"); // data:image/svg+xml,...
+const b64 = qrcodeBase64("Hello"); // data:image/svg+xml;base64,...
+const term = qrcodeTerminal("Hello"); // Terminal (UTF-8 blocks)
+```
+
+## Convenience Helpers
+
+```ts
+import { wifi, email, sms, geo, url } from "etiket";
+
+wifi("MyNetwork", "password123"); // WiFi QR
+email("test@example.com"); // mailto: QR
+sms("+1234567890", "Hello!"); // SMS QR
+geo(37.7749, -122.4194); // Location QR
+url("https://example.com"); // URL QR
+```
+
+## Validation
+
+```ts
+import { validateBarcode, isValidInput, validateQRInput } from "etiket";
+
+validateBarcode("4006381333931", "ean13"); // { valid: true }
+validateBarcode("ABC", "ean13"); // { valid: false, error: '...' }
+isValidInput("HELLO", "code39"); // true
+```
+
+## Raw Encoders
+
+Access encoding functions directly for custom rendering:
+
+```ts
+import {
+  encodeCode128,
+  encodeEAN13,
+  encodeQR,
+  encodeDataMatrix,
+  encodePDF417,
+  encodeAztec,
+  renderBarcodeSVG,
+  renderQRCodeSVG,
+  renderMatrixSVG,
+} from "etiket";
+
+const bars = encodeCode128("data"); // number[] (bar/space widths)
+const matrix = encodeQR("data"); // boolean[][] (QR matrix)
+const dm = encodeDataMatrix("data"); // boolean[][] (Data Matrix)
+
+const svg = renderBarcodeSVG(bars, { height: 100 });
+const qrSvg = renderQRCodeSVG(matrix, { size: 400, dotType: "dots" });
 ```
 
 ## Features
 
 - Zero dependencies
-- Pure ESM + CJS dual export
-- TypeScript native
+- Pure ESM
+- TypeScript-first with strict types
+- Tree-shakeable sub-path exports
 - SVG string output (no DOM required)
 - Works in browser, Node.js, Deno, Bun, workers
-- ~4KB gzipped
-
-## Supported formats
-
-- **Code 128** Auto (automatic A/B/C charset optimization)
-- **EAN-13** (with auto check digit)
-- **EAN-8** (with auto check digit)
-- **QR Code** (byte mode, EC level M, versions 1-10)
+- ~24KB gzipped (full bundle)
 
 ## Inspiration & Credits
 
-This project was built from scratch but inspired by these excellent libraries:
+Built from scratch, inspired by:
 
-- [uqr](https://github.com/unjs/uqr) — Zero-dependency QR code generator from the UnJS ecosystem. Inspired the approach of pure SVG string output without DOM dependency.
-- [bwip-js](https://github.com/metafloor/bwip-js) — Comprehensive barcode generator supporting 100+ types. Referenced for Code 128 Auto charset optimization logic.
-- [JsBarcode](https://github.com/lindell/JsBarcode) — Popular barcode library. Referenced for encoding table validation.
-- [pure-svg-code](https://github.com/gwuhaolin/pure-svg-code) — Lightweight barcode + QR in one package. Inspired the "single package for both" approach.
+- [uqr](https://github.com/unjs/uqr) — Pure SVG QR approach
+- [bwip-js](https://github.com/metafloor/bwip-js) — Comprehensive barcode formats
+- [JsBarcode](https://github.com/lindell/JsBarcode) — Encoding table reference
+- [qr-code-styling](https://github.com/nicolo-ribaudo/qr-code-styling) — QR styling concepts
 
-Barcode encoding follows [ISO/IEC 15417](https://www.iso.org/standard/43896.html) (Code 128) and [ISO/IEC 15420](https://www.iso.org/standard/46143.html) (EAN/UPC) standards. QR Code encoding follows [ISO/IEC 18004](https://www.iso.org/standard/62021.html).
+Standards: [ISO/IEC 15417](https://www.iso.org/standard/43896.html) (Code 128), [ISO/IEC 15420](https://www.iso.org/standard/46143.html) (EAN/UPC), [ISO/IEC 18004](https://www.iso.org/standard/62021.html) (QR), [ISO/IEC 16022](https://www.iso.org/standard/44230.html) (Data Matrix), [ISO/IEC 15438](https://www.iso.org/standard/43816.html) (PDF417), [ISO/IEC 24778](https://www.iso.org/standard/41548.html) (Aztec).
 
 ## License
 
-MIT
+Published under the [MIT](https://github.com/productdevbook/etiket/blob/main/LICENSE) license.
