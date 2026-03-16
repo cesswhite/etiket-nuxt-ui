@@ -42,6 +42,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "docs:dev": "npx mdzilla ./docs",
+    "release": "pnpm test && pnpm build && changelogen --release && npm publish && git push --follow-tags",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [
