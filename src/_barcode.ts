@@ -3,6 +3,11 @@
  */
 
 import { encodeCode128 } from "./encoders/code128";
+import {
+  encodeGS1DataBarOmni,
+  encodeGS1DataBarLimited,
+  encodeGS1DataBarExpanded,
+} from "./encoders/gs1-databar";
 import { encodeEAN13, encodeEAN8 } from "./encoders/ean";
 import { encodeCode39, encodeCode39Extended } from "./encoders/code39";
 import { encodeCode93, encodeCode93Extended } from "./encoders/code93";
@@ -120,6 +125,15 @@ export function barcode(text: string, options: BarcodeOptions = {}): string {
     }
     case "plessey":
       bars = encodePlessey(text);
+      break;
+    case "gs1-databar":
+      bars = encodeGS1DataBarOmni(text);
+      break;
+    case "gs1-databar-limited":
+      bars = encodeGS1DataBarLimited(text);
+      break;
+    case "gs1-databar-expanded":
+      bars = encodeGS1DataBarExpanded(text);
       break;
     default:
       throw new Error(`Unsupported barcode type: ${type}`);

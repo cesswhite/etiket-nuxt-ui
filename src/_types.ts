@@ -27,7 +27,10 @@ export type BarcodeType =
   | "leitcode"
   | "postnet"
   | "planet"
-  | "plessey";
+  | "plessey"
+  | "gs1-databar"
+  | "gs1-databar-limited"
+  | "gs1-databar-expanded";
 
 export interface BarcodeOptions extends BarcodeSVGOptions {
   type?: BarcodeType;

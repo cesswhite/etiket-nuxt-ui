@@ -74,6 +74,11 @@ export { encodeIdentcode, encodeLeitcode } from "./encoders/deutsche-post";
 export { encodePOSTNET, encodePLANET } from "./encoders/postnet";
 export { encodePlessey } from "./encoders/plessey";
 export {
+  encodeGS1DataBarOmni,
+  encodeGS1DataBarLimited,
+  encodeGS1DataBarExpanded,
+} from "./encoders/gs1-databar";
+export {
   encodeRM4SCC,
   encodeKIX,
   encodeAustraliaPost,

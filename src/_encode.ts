@@ -16,6 +16,11 @@ import { encodePharmacode } from "./encoders/pharmacode";
 import { encodeCode11 } from "./encoders/code11";
 import { encodeGS1128 } from "./encoders/gs1-128";
 import { encodeIdentcode, encodeLeitcode } from "./encoders/deutsche-post";
+import {
+  encodeGS1DataBarOmni,
+  encodeGS1DataBarLimited,
+  encodeGS1DataBarExpanded,
+} from "./encoders/gs1-databar";
 import { encodePOSTNET, encodePLANET } from "./encoders/postnet";
 import { encodePlessey } from "./encoders/plessey";
 import { encodeDataMatrix } from "./encoders/datamatrix/index";
@@ -100,6 +105,15 @@ export function encode(text: string, options: EncodeOptions = {}): EncodeResult 
       break;
     case "identcode":
       bars = encodeIdentcode(text);
+      break;
+    case "gs1-databar":
+      bars = encodeGS1DataBarOmni(text);
+      break;
+    case "gs1-databar-limited":
+      bars = encodeGS1DataBarLimited(text);
+      break;
+    case "gs1-databar-expanded":
+      bars = encodeGS1DataBarExpanded(text);
       break;
     case "leitcode":
       bars = encodeLeitcode(text);
