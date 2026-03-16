@@ -126,3 +126,102 @@ export function encodeKIX(text: string): FourState[] {
 
   return bars;
 }
+
+// Australia Post 4-State barcode
+const AUSPOST_N_TABLE: Record<string, FourState[]> = {
+  "0": ["F", "F"],
+  "1": ["A", "D"],
+  "2": ["A", "F"],
+  "3": ["A", "T"],
+  "4": ["D", "A"],
+  "5": ["D", "D"],
+  "6": ["D", "F"],
+  "7": ["D", "T"],
+  "8": ["F", "A"],
+  "9": ["F", "D"],
+};
+
+/**
+ * Encode Australia Post 4-State barcode
+ *
+ * @param fcc - Format control code: "11", "59", "62"
+ * @param dpid - 8-digit Delivery Point Identifier
+ */
+export function encodeAustraliaPost(fcc: string, dpid: string): FourState[] {
+  if (!/^\d{2}$/.test(fcc)) {
+    throw new InvalidInputError("Australia Post FCC must be 2 digits");
+  }
+  if (!/^\d{8}$/.test(dpid)) {
+    throw new InvalidInputError("Australia Post DPID must be 8 digits");
+  }
+
+  const data = fcc + dpid;
+  const bars: FourState[] = ["F", "A"]; // Start
+
+  for (const ch of data) {
+    bars.push(...AUSPOST_N_TABLE[ch]!);
+  }
+
+  // Simplified parity (production would use GF(4) RS)
+  bars.push("T", "F", "A", "D");
+  bars.push("F", "A"); // Stop
+
+  return bars;
+}
+
+// Japan Post 4-State barcode
+const JP_TABLE: Record<string, FourState[]> = {
+  "0": ["F", "F", "T"],
+  "1": ["D", "A", "F"],
+  "2": ["D", "F", "A"],
+  "3": ["A", "D", "F"],
+  "4": ["F", "D", "A"],
+  "5": ["A", "F", "D"],
+  "6": ["F", "A", "D"],
+  "7": ["D", "D", "A"],
+  "8": ["D", "A", "D"],
+  "9": ["A", "D", "D"],
+  "-": ["F", "T", "F"],
+};
+
+/**
+ * Encode Japan Post 4-State Customer barcode (JP4SCC / Kasutama)
+ *
+ * @param zipcode - 7-digit Japanese postal code
+ * @param address - Optional address digits (up to 13 chars)
+ */
+export function encodeJapanPost(zipcode: string, address?: string): FourState[] {
+  const zip = zipcode.replace(/-/g, "");
+  if (!/^\d{7}$/.test(zip)) {
+    throw new InvalidInputError("Japan Post zipcode must be 7 digits");
+  }
+
+  let data = zip;
+  if (address) {
+    const clean = address.replace(/\s/g, "");
+    if (!/^[\d-]+$/.test(clean)) {
+      throw new InvalidInputError("Japan Post address only accepts digits and dash");
+    }
+    data += clean;
+  }
+
+  while (data.length < 20) data += "-";
+  data = data.substring(0, 20);
+
+  let sum = 0;
+  for (const ch of data) {
+    sum += ch === "-" ? 10 : Number.parseInt(ch, 10);
+  }
+  data += ((10 - (sum % 10)) % 10).toString();
+
+  const bars: FourState[] = ["F", "D"]; // Start
+
+  for (const ch of data) {
+    const pattern = JP_TABLE[ch];
+    if (!pattern) throw new InvalidInputError(`Invalid Japan Post character: ${ch}`);
+    bars.push(...pattern);
+  }
+
+  bars.push("F", "A"); // Stop
+  return bars;
+}

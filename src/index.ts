@@ -792,7 +792,12 @@ export { encodeGS1128 } from "./encoders/gs1-128";
 export { encodeIdentcode, encodeLeitcode } from "./encoders/deutsche-post";
 export { encodePOSTNET, encodePLANET } from "./encoders/postnet";
 export { encodePlessey } from "./encoders/plessey";
-export { encodeRM4SCC, encodeKIX } from "./encoders/fourstate";
+export {
+  encodeRM4SCC,
+  encodeKIX,
+  encodeAustraliaPost,
+  encodeJapanPost,
+} from "./encoders/fourstate";
 export type { FourState } from "./encoders/fourstate";
 export {
   encodeISBT128DIN,
