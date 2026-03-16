@@ -12,6 +12,13 @@
   <a href="https://github.com/productdevbook/etiket/blob/main/LICENSE"><img src="https://img.shields.io/github/license/productdevbook/etiket?style=flat&colorA=18181B&colorB=F0DB4F" alt="license"></a>
 </p>
 
+> [!IMPORTANT]
+> **Scan-verified formats:** QR Code, Data Matrix, PDF417, Aztec, Micro QR, Code 128, EAN-13, EAN-8, UPC-A, Code 39, Code 93, ITF, Codabar, GS1-128 — all verified with round-trip encode/decode tests.
+>
+> **Experimental formats:** rMQR, MicroPDF417, MaxiCode, DotCode, Han Xin, JAB Code, Code 16K — these encoders produce structurally valid output but have not been verified with external scanners. They may not scan correctly on all devices. PRs and bug reports are welcome.
+>
+> **Contributions welcome!** If you find a scanning issue or want to improve an encoder, please [open an issue](https://github.com/productdevbook/etiket/issues) or submit a PR. See [Contributing](#contributing) below.
+
 ## Quick Start
 
 ```sh
@@ -437,6 +444,34 @@ Built from scratch, inspired by these excellent libraries:
 - [qr-code-styling](https://github.com/kozakdenys/qr-code-styling) — QR styling concepts (dot types, gradients, corners, logos)
 
 Standards: [ISO/IEC 15417](https://www.iso.org/standard/43896.html) (Code 128), [ISO/IEC 15420](https://www.iso.org/standard/46143.html) (EAN/UPC), [ISO/IEC 18004](https://www.iso.org/standard/62021.html) (QR), [ISO/IEC 16022](https://www.iso.org/standard/44230.html) (Data Matrix), [ISO/IEC 15438](https://www.iso.org/standard/43816.html) (PDF417), [ISO/IEC 24778](https://www.iso.org/standard/41548.html) (Aztec), [ISO/IEC 24724](https://www.iso.org/standard/51426.html) (GS1 DataBar), [ISO/IEC 16023](https://www.iso.org/standard/29835.html) (MaxiCode), [ISO/IEC 23941](https://www.iso.org/standard/77404.html) (rMQR), [ISO/IEC 20830](https://www.iso.org/standard/69321.html) (Han Xin), [ISO/IEC 23634](https://www.iso.org/standard/76478.html) (JAB Code), [AIM ISS DotCode 4.0](https://www.aimglobal.org) (DotCode), [USPS-B-3200](https://postalpro.usps.com/mailing/intelligent-mail-barcode) (IMb).
+
+## Contributing
+
+Contributions are welcome! Here are some areas where help is especially appreciated:
+
+**Encoder improvements needed:**
+
+- **rMQR** — Format info encoding and alignment pattern placement need work
+- **MicroPDF417** — RAP (Row Address Pattern) index calculations need verification against ISO/IEC 24728
+- **MaxiCode** — Hexagonal module placement algorithm needs correction per ISO/IEC 16023
+- **DotCode** — Dot placement and mask pattern per AIM ISS DotCode 4.0
+- **Han Xin** — GB 18030 Chinese character encoding mode
+- **Code 16K** — Row-specific start patterns per AIM BC7-2000
+
+**Other contributions:**
+
+- PNG/raster output support ([#3](https://github.com/productdevbook/etiket/issues/3))
+- Data Matrix DMRE rectangular sizes ([#71](https://github.com/productdevbook/etiket/issues/71))
+- GS1 DataBar stacked variants ([#61](https://github.com/productdevbook/etiket/issues/61))
+- Round-trip scan tests for experimental formats
+- Documentation improvements
+
+```bash
+pnpm install    # Install dependencies
+pnpm dev        # Run tests in watch mode
+pnpm test       # Lint + typecheck + test
+pnpm build      # Build for production
+```
 
 ## License
 
