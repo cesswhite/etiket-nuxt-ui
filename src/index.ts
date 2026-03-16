@@ -49,6 +49,7 @@ export type {
   CornerOptions,
   LogoOptions,
   MeasurementUnit,
+  SVGAccessibilityOptions,
 } from "./renderers/svg/types";
 export type { ErrorCorrectionLevel, EncodingMode } from "./encoders/qr/types";
 
@@ -119,6 +120,7 @@ export {
 export { renderBarcodeSVG } from "./renderers/svg/barcode";
 export { renderQRCodeSVG } from "./renderers/svg/qr";
 export { renderMatrixSVG } from "./renderers/svg/matrix";
+export type { MatrixSVGOptions } from "./renderers/svg/matrix";
 export { renderText } from "./renderers/text";
 export { svgToDataURI, svgToBase64, svgToBase64Raw } from "./renderers/data-uri";
 export { optimizeSVG } from "./renderers/svg/optimize";
