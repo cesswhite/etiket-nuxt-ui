@@ -534,6 +534,46 @@ export function swissQR(
   return qrcode(lines.join("\n"), { ecLevel: "M", ...options });
 }
 
+/**
+ * Generate a GS1 Digital Link QR code
+ * Converts AI data into a resolvable URL format per GS1 Digital Link standard
+ *
+ * @param data - Object with AI keys and values, e.g. { gtin: "09520123456788", batch: "ABC123" }
+ * @param options - QR code options + optional domain (default "https://id.gs1.org")
+ */
+export function gs1DigitalLink(
+  data: {
+    gtin: string;
+    batch?: string;
+    serial?: string;
+    expiry?: string;
+    weight?: string;
+    lot?: string;
+    [key: string]: string | undefined;
+  },
+  options?: QRCodeSVGOptions & QRCodeOptions & { domain?: string },
+): string {
+  const { domain = "https://id.gs1.org", ...qrOpts } = options ?? {};
+
+  // Build URI path: /01/GTIN[/10/batch][/21/serial][/17/expiry]...
+  let path = `/01/${data.gtin}`;
+  if (data.batch ?? data.lot) path += `/10/${data.batch ?? data.lot}`;
+  if (data.serial) path += `/21/${data.serial}`;
+  if (data.expiry) path += `/17/${data.expiry}`;
+  if (data.weight) path += `/3103/${data.weight}`;
+
+  // Add any extra AIs as path segments
+  const knownKeys = new Set(["gtin", "batch", "serial", "expiry", "weight", "lot"]);
+  for (const [key, value] of Object.entries(data)) {
+    if (!knownKeys.has(key) && value) {
+      path += `/${key}/${value}`;
+    }
+  }
+
+  const uri = `${domain}${path}`;
+  return qrcode(uri, qrOpts);
+}
+
 function escapeWifi(str: string): string {
   return str.replace(/([\\;,:"'])/g, "\\$1");
 }
