@@ -324,6 +324,9 @@ export function encodeRMQR(text: string, options: RMQROptions = {}): boolean[][]
     pushBits(allBits, byte, 8);
   }
 
+  // Record which cells are data (null) before placement
+  const isData: boolean[][] = matrix.map((row) => row.map((cell) => cell === null));
+
   // 6b. Data placement: exact Zint qr_populate_grid algorithm for rMQR
   // x_start = cols - 3 (righthand timing pattern)
   // Start from bottom (y = rows-1), going up, right col first then left
@@ -378,8 +381,8 @@ export function encodeRMQR(text: string, options: RMQROptions = {}): boolean[][]
   const result = matrix.map((row) => row.map((cell) => cell === true));
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      // Only mask data modules (null in original matrix)
-      if (matrix[r]![c] === null) {
+      // Only mask data modules (recorded before data placement)
+      if (isData[r]![c]) {
         if ((Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0) {
           result[r]![c] = !result[r]![c];
         }
