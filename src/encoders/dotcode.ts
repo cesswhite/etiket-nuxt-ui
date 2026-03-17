@@ -148,23 +148,28 @@ export function encodeDotCode(text: string): boolean[][] {
     }
   }
 
-  // Select symbol size
+  // Select symbol size per Zint/AIM ISS DotCode algorithm
   const dataCW = codewords.length;
-  const ecCW = Math.max(4, Math.ceil(dataCW * 0.3)); // ~30% EC overhead
+  // EC count: at least half data + 3 overhead
+  const ecCW = Math.max(3, Math.floor(dataCW / 2) + 3);
   const totalCW = dataCW + ecCW;
-  const neededDots = totalCW * 5;
-  const neededCells = neededDots * 2; // checkerboard = half filled
+  // min_dots = 9 * totalCW + 2 (mask bits). min_area = min_dots * 2
+  const minDots = 9 * totalCW + 2;
+  const minArea = minDots * 2;
 
-  // Find suitable dimensions — DotCode requires (height + width) to be odd
-  let width = Math.max(7, Math.ceil(Math.sqrt(neededCells * 2.5)));
-  if (width % 2 === 0) width++;
-  let height = Math.max(5, Math.ceil(neededCells / width));
-  if (height % 2 === 0) height++;
+  // 3:2 aspect ratio preference (width > height)
+  let height = Math.max(5, Math.round(Math.sqrt(minArea * 0.666)));
+  let width = Math.max(5, Math.round(Math.sqrt(minArea * 1.5)));
 
-  // Ensure height + width is odd (DotCode constraint)
-  // Make one dimension even and one odd so their sum is odd
-  if ((height + width) % 2 === 0) {
-    height++;
+  // Ensure minimum area
+  while (width * height < minArea) {
+    width++;
+  }
+
+  // Ensure height + width is odd
+  if ((width + height) % 2 === 0) {
+    width++;
+    if (width * height < minArea) height++;
   }
 
   // Pad data codewords to fill available data capacity
