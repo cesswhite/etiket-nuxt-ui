@@ -329,21 +329,36 @@ export function encodeHanXin(text: string, options: HanXinOptions = {}): boolean
   placeFinderHX(matrix, size - 7, 0, FINDER_BL, size);
   placeFinderHX(matrix, size - 7, size - 7, FINDER_BR, size);
 
-  // Han Xin has NO timing patterns — only separator bands around finders
-  // 1-module white separator around each 7x7 finder
-  for (let i = -1; i <= 7; i++) {
+  // Separator: 8-module white border around each finder (row/col 7 and symmetric)
+  for (let i = 0; i < 8; i++) {
     // Top-left separator
-    setSafeNull(matrix, 7, i, size);
-    setSafeNull(matrix, i, 7, size);
+    matrix[7]![i] = false;
+    matrix[i]![7] = false;
     // Top-right separator
-    setSafeNull(matrix, 7, size - 8 + i, size);
-    setSafeNull(matrix, i, size - 8, size);
+    matrix[7]![size - 1 - i] = false;
+    matrix[i]![size - 8] = false;
     // Bottom-left separator
-    setSafeNull(matrix, size - 8, i, size);
-    setSafeNull(matrix, size - 8 + i, 7, size);
+    matrix[size - 8]![i] = false;
+    matrix[size - 1 - i]![7] = false;
     // Bottom-right separator
-    setSafeNull(matrix, size - 8, size - 8 + i, size);
-    setSafeNull(matrix, size - 8 + i, size - 8, size);
+    matrix[size - 8]![size - 1 - i] = false;
+    matrix[size - 1 - i]![size - 8] = false;
+  }
+
+  // Function information region: 9-module reserved area (row/col 8 and symmetric)
+  for (let i = 0; i < 9; i++) {
+    // Top-left
+    if (matrix[8]![i] === null) matrix[8]![i] = false;
+    if (matrix[i]![8] === null) matrix[i]![8] = false;
+    // Top-right
+    if (matrix[8]![size - 1 - i] === null) matrix[8]![size - 1 - i] = false;
+    if (matrix[i]![size - 9] === null) matrix[i]![size - 9] = false;
+    // Bottom-left
+    if (matrix[size - 9]![i] === null) matrix[size - 9]![i] = false;
+    if (matrix[size - 1 - i]![8] === null) matrix[size - 1 - i]![8] = false;
+    // Bottom-right
+    if (matrix[size - 9]![size - 1 - i] === null) matrix[size - 9]![size - 1 - i] = false;
+    if (matrix[size - 1 - i]![size - 9] === null) matrix[size - 1 - i]![size - 9] = false;
   }
 
   // Place data bits into available modules

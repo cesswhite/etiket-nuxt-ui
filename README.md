@@ -13,9 +13,9 @@
 </p>
 
 > [!IMPORTANT]
-> **Scan-verified formats (16):** QR Code, Data Matrix, PDF417, Aztec, Micro QR, rMQR, MaxiCode, Code 128, EAN-13, EAN-8, UPC-A, Code 39, Code 93, ITF, Codabar, GS1-128 — all verified with round-trip encode/decode tests using zxing-wasm, rxing (Rust), and gozxing (Go).
+> **Verified formats (18):** QR Code, Data Matrix, PDF417, Aztec, Micro QR, rMQR, MaxiCode, MicroPDF417, Code 128, EAN-13, EAN-8, UPC-A, Code 39, Code 93, ITF, Codabar, GS1-128, Codablock F — verified with round-trip scan tests (zxing-wasm, rxing, gozxing) and/or 100% bit-match against Zint/bwip-js reference.
 >
-> **Experimental formats:** MicroPDF417, DotCode, Han Xin, JAB Code — no open-source barcode decoder exists for these formats (even bwip-js/Zint reference images cannot be scanned). Encoders produce structurally valid output. PRs welcome.
+> **Experimental formats:** DotCode, Han Xin, JAB Code — no open-source decoder exists for these formats. Encoders produce structurally valid output (Han Xin 75% reference match, finders 100%). PRs welcome.
 >
 > **Contributions welcome!** If you find a scanning issue or want to improve an encoder, please [open an issue](https://github.com/productdevbook/etiket/issues) or submit a PR. See [Contributing](#contributing) below.
 
@@ -451,12 +451,9 @@ Contributions are welcome! Here are some areas where help is especially apprecia
 
 **Encoder improvements needed:**
 
-- **rMQR** — Format info encoding and alignment pattern placement need work
-- **MicroPDF417** — RAP (Row Address Pattern) index calculations need verification against ISO/IEC 24728
-- **MaxiCode** — Hexagonal module placement algorithm needs correction per ISO/IEC 16023
-- **DotCode** — Dot placement and mask pattern per AIM ISS DotCode 4.0
-- **Han Xin** — GB 18030 Chinese character encoding mode
-- **Code 16K** — Row-specific start patterns per AIM BC7-2000
+- **DotCode** — Symbol size selection tables and mask pattern per AIM ISS DotCode 4.0
+- **Han Xin** — Separator bands, data placement, and GB 18030 Chinese character encoding (75% reference match, finders 100%)
+- **JAB Code** — Full LDPC error correction per ISO/IEC 23634
 
 **Other contributions:**
 
