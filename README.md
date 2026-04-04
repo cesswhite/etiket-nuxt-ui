@@ -409,6 +409,117 @@ qrcode("https://example.com", {
 barcode("HELLO", { color: "currentColor", background: "transparent" });
 ```
 
+## Framework Integration
+
+etiket generates plain SVG strings — no DOM required. Works with any framework:
+
+### React / Next.js
+
+```tsx
+import { qrcode } from "etiket";
+
+function QRCode({ url }: { url: string }) {
+  const svg = qrcode(url, {
+    size: 200,
+    dotType: "dots",
+    ecLevel: "H",
+    corners: {
+      topLeft: { outerShape: "dots", innerShape: "dots", outerColor: "#ff0000" },
+      topRight: { outerShape: "dots", innerShape: "dots" },
+      bottomLeft: { outerShape: "dots", innerShape: "dots" },
+    },
+  });
+
+  return <div dangerouslySetInnerHTML={{ __html: svg }} />;
+}
+```
+
+Or use a data URI for `<img>`:
+
+```tsx
+import { qrcodeDataURI } from "etiket";
+
+function QRImage({ url }: { url: string }) {
+  return <img src={qrcodeDataURI(url)} alt="QR Code" width={200} height={200} />;
+}
+```
+
+PNG output (useful for downloads or `<canvas>`):
+
+```tsx
+import { qrcodePNGDataURI } from "etiket/png";
+
+function QRCodePNG({ url }: { url: string }) {
+  return <img src={qrcodePNGDataURI(url, { size: 200 })} alt="QR Code" width={200} height={200} />;
+}
+```
+
+> **Note:** `qrcode()` is a pure function with zero DOM dependencies — it works in both Server Components (RSC) and Client Components.
+
+### Vue
+
+```vue
+<script setup lang="ts">
+import { qrcode } from "etiket";
+
+const props = defineProps<{ url: string }>();
+const svg = computed(() => qrcode(props.url, { dotType: "dots", ecLevel: "H" }));
+</script>
+
+<template>
+  <div v-html="svg" />
+</template>
+```
+
+### Svelte
+
+```svelte
+<script lang="ts">
+  import { qrcode } from "etiket";
+
+  let { url }: { url: string } = $props();
+  let svg = $derived(qrcode(url, { dotType: "dots", ecLevel: "H" }));
+</script>
+
+{@html svg}
+```
+
+### Angular
+
+```typescript
+import { Component, Input } from "@angular/core";
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
+import { qrcode } from "etiket";
+
+@Component({
+  selector: "app-qrcode",
+  template: `<div [innerHTML]="svg"></div>`,
+})
+export class QRCodeComponent {
+  svg: SafeHtml = "";
+
+  @Input() set url(value: string) {
+    this.svg = this.sanitizer.bypassSecurityTrustHtml(
+      qrcode(value, { dotType: "dots", ecLevel: "H" }),
+    );
+  }
+
+  constructor(private sanitizer: DomSanitizer) {}
+}
+```
+
+### Astro
+
+```astro
+---
+import { qrcode } from "etiket";
+
+const svg = qrcode("https://example.com", { dotType: "dots", ecLevel: "H" });
+---
+
+<Fragment set:html={svg} />
+```
+
 ## Features
 
 - Zero dependencies
