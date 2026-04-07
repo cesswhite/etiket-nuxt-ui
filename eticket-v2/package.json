@@ -1,0 +1,26 @@
+{
+  "name": "eticket-v2",
+  "private": true,
+  "type": "module",
+  "version": "1.0.6",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/image": "2.0.0",
+    "@nuxt/ui": "4.6.0",
+    "@pinia/nuxt": "0.11.3",
+    "@vueuse/core": "^14.2.1",
+    "nuxt": "4.4.2",
+    "pinia": "3.0.4"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.101",
+    "typescript": "6.0.2",
+    "vue-tsc": "3.2.6"
+  }
+}

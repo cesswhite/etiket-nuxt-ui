@@ -1,0 +1,11 @@
+---
+description: Prevents hardcoded colors in UI code
+globs: ["**/*.vue", "**/*.css", "**/*.scss", "**/*.tsx", "**/*.jsx"]
+---
+
+# No hardcoded colors
+
+Never use raw color values (hex, rgb, hsl, or named colors like `red`) in components or styles.
+
+- **Use**: Theme tokens, CSS variables (`var(--ui-*)` or project variables), or the UI library’s semantic options (e.g. Nuxt UI `color="primary"`).
+- **Before committing**: Search for `#`, `rgb(`, `hsl(` and replace any literal colors with theme/token references.

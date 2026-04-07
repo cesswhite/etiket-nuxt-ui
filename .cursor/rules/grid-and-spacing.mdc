@@ -1,0 +1,52 @@
+# Grid system and spacing scale (UI/UX)
+
+When building or editing dashboard layouts (e.g. Campaign, Photoshoot, Hero), follow this grid and spacing system so layouts stay consistent and scalable.
+
+## Grid
+
+- **Columns:** Use a **12-column grid** for main layouts (`grid-cols-12`).
+- **Gutters:** Use **24px between columns** → `gap-6` (Tailwind: 1.5rem = 24px). For tighter sections use `gap-4` (16px).
+- **Breakpoints:** On mobile, stack to a single column (`col-span-full`). On `md:` use explicit column spans (e.g. `md:col-span-2`, `md:col-span-8`).
+
+## Container margins (viewport edge)
+
+Use padding that scales by breakpoint so content doesn’t touch the viewport edge:
+
+- **Mobile:** 16px → `px-4`
+- **Tablet (md):** 24px → `md:px-6`
+- **Desktop (lg):** 32px → `lg:px-8`
+
+Example: `px-4 md:px-6 lg:px-8` on the main grid wrapper.
+
+## Spacing scale (multiples of 4px)
+
+Prefer these Tailwind spacing values so vertical and horizontal rhythm stay consistent:
+
+| Token | Px  | Use |
+|-------|-----|-----|
+| 1     | 4   | Tiny (e.g. icon gaps) |
+| 2     | 8   | Labels to content, small gaps |
+| 3     | 12  | In-card spacing, compact blocks |
+| 4     | 16  | Default gap between elements, card padding |
+| 5     | 20  | Optional step |
+| 6     | 24  | Section gaps, grid gutters |
+| 8     | 32  | Large section spacing |
+| 10–16 | 40–64 | Hero / large layout spacing |
+
+**In practice:**
+
+- **Between cards or sections:** `gap-6` (24px) or `space-y-6`.
+- **Card body padding:** `p-4` (16px).
+- **Header to body:** `pb-3` (12px) then `pt-0` on body.
+- **Between form fields / blocks inside a card:** `space-y-4` (16px) or `gap-4`.
+- **Icon to text in headers:** `gap-3` (12px).
+
+## Layout patterns
+
+- **Two sidebars + main:** Left `md:col-span-2`, center `md:col-span-8`, right `md:col-span-2` with `gap-6` and container padding as above.
+- **Card grids:** Use `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` (or 4) with `gap-4` or `gap-6`.
+- **Alignment:** Keep headings, form labels and primary actions aligned to the same column edges; avoid arbitrary offsets unless intentionally breaking the grid for emphasis (e.g. hero).
+
+## Reference
+
+Based on grid system best practices (column grid, gutters, margins, spacing scale) and Tailwind v4 utility usage. Campaign Container and cards (GeneralFilters, CreateCampaignCard, BrandVoiceCard, BrandCard, ResetCard) already follow this rule.

@@ -1,0 +1,31 @@
+@import "tailwindcss" theme(static);
+@import "@nuxt/ui";
+
+/* See config: https://ui3.nuxt.dev/getting-started/theme#colors */
+@theme {
+  --font-family-inter: "Inter", sans-serif;
+  --font-family-instrument: "Instrument Serif", serif;
+
+  --color-dark-50: var(--ui-color-neutral-50);
+  --color-dark-100: var(--ui-color-neutral-100);
+  --color-dark-200: var(--ui-color-neutral-200);
+  --color-dark-300: var(--ui-color-neutral-300);
+  --color-dark-400: var(--ui-color-neutral-400);
+  --color-dark-500: var(--ui-color-neutral-500);
+  --color-dark-600: var(--ui-color-neutral-600);
+  --color-dark-700: var(--ui-color-neutral-700);
+  --color-dark-800: var(--ui-color-neutral-800);
+  --color-dark-900: var(--ui-color-neutral-900);
+  --color-dark-950: var(--ui-color-neutral-950);
+}
+
+/* For Webkit-based browsers (Chrome, Safari and Opera) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

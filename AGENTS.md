@@ -99,6 +99,14 @@ test/
   barcode-roundtrip.test.ts # 1D barcode structural validation
 docs/
   **/*.md                   # Documentation (mdzilla-compatible)
+eticket-v2/                 # Web playground — Nuxt 4 + Nuxt UI + Pinia
+  app/
+    pages/(home).vue        # Main playground (tabs: Barcodes, QR, 2D, Helpers)
+    layouts/main.vue        # App layout (header + main)
+    stores/                 # Pinia stores (barcode, qr, twod, helpers)
+    components/             # BarcodePanel, QRPanel, TwoDPanel, HelpersPanel, CodePreview
+    composables/            # useDownload
+    utils/renderers.ts      # Custom SVG renderers (4-state, JABCode, svgToPNG)
 ```
 
 ## Public API
